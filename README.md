@@ -26,19 +26,19 @@ class Post < ApplicationRecord
 end
 
 post = Post.create(title: "Hello")
-# 创建或查找一个名为 "Important" 的 badge
+# Create or find a badge named "Important"
 badge = RailsBadgeable::Badge.find_or_create_by(name: "Important")
 
-# 将 badge 分配给 post
+# Assign the badge to post
 post.badges << badge
 
-# 查询：这个 badge 分配给了哪些 posts？
-# 返回所有带有 "Important" badge 的 Post 记录
-# !!! 注意，这里并不支持 badge.posts 这种语法。
+# Query: Which posts have this badge assigned?
+# Returns all Post records with the "Important" badge
+# !!! Note, badge.posts syntax is not supported.
 badge.assigned_to(Post)  # => [post]
 
-# 查询：Post 模型使用过哪些 badges？
-# 返回所有曾经分配给 Post 的 badges（排除从未使用过的）
+# Query: Which badges have been used on the Post model?
+# Returns all badges that have ever been assigned to a Post (excluding unused ones)
 RailsBadgeable::Badge.for_model(Post)  # => [badge]
 ```
 
