@@ -7,7 +7,7 @@ module Api
 
     def show
       badge = RailsBadgeable::Badge.find(params[:id])
-      render json: badge
+      render json: badge.as_json(include: { assignments: { only: [:assignable_type, :assignable_id] } })
     end
 
     def create

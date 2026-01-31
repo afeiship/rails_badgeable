@@ -1,0 +1,294 @@
+# Rails Badgeable
+
+> Rails Badgeable is a lightweight, reusable Rails Engine that enables any ActiveRecord model to associate with a finite set of predefined badges via polymorphic many-to-many relationships.
+
+It provides a clean, namespace-isolated way to add badge functionality to your Rails applications without polluting your models or database schema. The engine uses standard Rails conventions and is fully compatible with Rails 6.0+.
+
+**Important notes for AI agents:**
+- This is a Rails Engine, not a mountable engine (no routes, controllers, or views)
+- All models are namespaced under `RailsBadgeable` module
+- Table names are explicitly set to avoid conflicts: `rails_badgeable_badges` and `rails_badgeable_assignments`
+- The engine uses polymorphic associations, allowing badges to be assigned to ANY model
+- An optional generator is available for creating short aliases (e.g., `Badge` instead of `RailsBadgeable::Badge`)
+
+## Documentation
+
+- [GitHub Repository](https://github.com/afeiship/rails_badgeable): Source code and issue tracking
+- [README](README.md): Installation guide and basic usage examples
+- [Requirements](docs/01-requirement.md): Detailed project requirements and design specifications
+
+## Key Features
+
+- **Polymorphic Associations:** Assign badges to any ActiveRecord model (Post, User, Comment, etc.)
+- **Database-level Constraints:** Unique indexes prevent duplicate badge assignments
+- **Namespace Isolated:** All models under `RailsBadgeable` namespace to avoid conflicts
+- **Explicit Table Names:** No reliance on Rails auto-inflection
+- **Optional Short Aliases:** Generator for `Badge` and `BadgeAssignment` aliases
+- **Rails 6.0+ Compatible:** Works with modern Rails versions
+- **Zero Configuration:** Works out of the box after migration
+
+## Installation
+
+Add to your Gemfile:
+
+```ruby
+gem 'rails_badgeable'
+```
+
+Run migrations:
+
+```bash
+rails rails_badgeable:install:migrations
+rails db:migrate
+```
+
+## Basic Usage
+
+### Include the Concern
+
+```ruby
+class Post < ApplicationRecord
+  include RailsBadgeable::HasBadges
+end
+
+class WorkLog < ApplicationRecord
+  include RailsBadgeable::HasBadges
+end
+```
+
+### Create and Assign Badges
+
+```ruby
+# Create or find a badge
+badge = RailsBadgeable::Badge.find_or_create_by(name: "Important", description: "Important content")
+
+# Assign to a post
+post = Post.create(title: "Hello World")
+post.badges << badge
+
+# Check if post has the badge
+post.badges.include?(badge) # => true
+```
+
+### Query Methods
+
+```ruby
+# Get all posts with a specific badge
+badge.assigned_to(Post)
+# => [#<Post id: 1, ...>, #<Post id: 3, ...>]
+
+# Get all badges ever used on Post model
+RailsBadgeable::Badge.for_model(Post)
+# => [#<RailsBadgeable::Badge name: "Important">, ...]
+```
+
+### Remove Badges
+
+```ruby
+# Remove a specific badge
+post.badges.destroy(badge)
+
+# Remove all badges
+post.badges.clear
+```
+
+## Optional Short Alias Generator
+
+For cleaner code, generate short aliases:
+
+```bash
+rails generate rails_badgeable:alias
+```
+
+This creates `config/initializers/badgeable.rb`:
+
+```ruby
+Badge = RailsBadgeable::Badge unless defined?(Badge)
+BadgeAssignment = RailsBadgeable::BadgeAssignment unless defined?(BadgeAssignment)
+```
+
+Then use short form:
+
+```ruby
+Badge.find_or_create_by(name: "Featured")
+BadgeAssignment.all
+```
+
+## Database Schema
+
+### badges table
+
+```ruby
+create_table :rails_badgeable_badges do |t|
+  t.string :name, null: false
+  t.text :description
+  t.timestamps
+end
+
+add_index :rails_badgeable_badges, :name, unique: true
+```
+
+### assignments table (join table)
+
+```ruby
+create_table :rails_badgeable_assignments do |t|
+  t.references :badge, null: false, foreign_key: { to_table: :rails_badgeable_badges }
+  t.references :assignable, polymorphic: true, null: false
+  t.timestamps
+end
+
+add_index :rails_badgeable_assignments,
+          [:badge_id, :assignable_type, :assignable_id],
+          unique: true,
+          name: "index_badge_assignments"
+```
+
+## Available Methods
+
+### Badge Instance Methods
+
+- `badge.assigned_to(klass)` - Returns all records of the given class that have this badge
+  ```ruby
+  badge.assigned_to(Post)  # => [post1, post2]
+  badge.assigned_to(User)  # => [user1, user3]
+  ```
+
+### Badge Class Methods
+
+- `RailsBadgeable::Badge.for_model(klass)` - Returns all badges ever used on the given model class
+  ```ruby
+  RailsBadgeable::Badge.for_model(Post)  # => [badge1, badge2]
+  ```
+
+### Model Methods (with HasBadges concern)
+
+- `model.badges` - Returns all badges assigned to this record
+- `model.badges << badge` - Assign a badge to this record
+- `model.badges.delete(badge)` - Remove a specific badge
+- `model.badges.clear` - Remove all badges
+- `model.rails_badgeable_assignments` - Direct access to join records
+
+## Advanced Usage
+
+### Custom Fields
+
+You can add custom fields to badges or assignments via migrations:
+
+```ruby
+# Add custom fields to badges
+add_column :rails_badgeable_badges, :color, :string, default: '#007bff'
+add_column :rails_badgeable_badges, :icon, :string
+
+# Add custom fields to assignments
+add_column :rails_badgeable_assignments, :reason, :text
+add_column :rails_badgeable_assignments, :granted_by_id, :integer
+add_column :rails_badgeable_assignments, :granted_at, :datetime
+```
+
+### Accessing Assignment Data
+
+```ruby
+# Get assignment metadata
+assignment = post.rails_badgeable_assignments.find_by(badge_id: 1)
+assignment.reason  # => "Community contribution"
+assignment.created_at  # => assignment time
+```
+
+### Conditional Scopes
+
+Add scopes to your models:
+
+```ruby
+class Post < ApplicationRecord
+  include RailsBadgeable::HasBadges
+
+  scope :important, -> { joins(:badges).where(rails_badgeable_badges: { name: 'Important' }) }
+  scope :featured, -> { joins(:badges).where(rails_badgeable_badges: { name: 'Featured' }) }
+end
+
+# Usage
+Post.important  # All posts with "Important" badge
+Post.featured   # All posts with "Featured" badge
+```
+
+## API Example (with dummy app)
+
+The included dummy app demonstrates API usage:
+
+```bash
+# Start server
+cd test/dummy
+bin/rails server
+
+# API endpoints
+GET    /api/badges                          # List all badges
+POST   /api/badges                          # Create badge
+GET    /api/badges/:id                      # Get badge
+PUT    /api/badges/:id                      # Update badge
+DELETE /api/badges/:id                      # Delete badge
+GET    /api/badges/:id/assigned_to?model_type=Post  # Get records with badge
+
+GET    /api/posts                           # List posts
+POST   /api/posts                           # Create post
+GET    /api/posts/:id                       # Get post (includes badges)
+PUT    /api/posts/:id                       # Update post
+DELETE /api/posts/:id                       # Delete post
+GET    /api/posts/:id/badges                # Get post's badges
+POST   /api/posts/:id/badges?badge_id=X     # Add badge to post
+DELETE /api/posts/:post_id/badges/:badge_id # Remove badge from post
+```
+
+## Testing
+
+Run tests with:
+
+```bash
+cd test/dummy
+bin/rails test
+```
+
+## Project Structure
+
+```
+lib/
+├── rails_badgeable.rb              # Main entry point
+├── rails_badgeable/
+│   ├── engine.rb                   # Engine definition
+│   └── version.rb                  # Version info
+app/models/
+├── rails_badgeable/
+│   ├── badge.rb                    # Badge model
+│   └── badge_assignment.rb         # Join model
+└── models/concerns/
+    └── rails_badgeable/
+        └── has_badges.rb           # Concern for host models
+db/migrate/
+└── xxx_create_rails_badgeable_tables.rb  # Migration generator
+lib/generators/
+└── rails_badgeable/
+    └── alias/                      # Short alias generator
+        ├── USAGE
+        ├── alias_generator.rb
+        └── templates/
+            └── badgeable.rb
+```
+
+## Usage Notes for Agents
+
+- **Always use full namespace** unless alias generator was run: `RailsBadgeable::Badge`
+- **Badge names are unique** - `find_or_create_by(name: "Important")` is safe
+- **Polymorphic type stores class name** - uses `base_class.name` for STI support
+- **Database prevents duplicates** - unique index on `[badge_id, assignable_type, assignable_id]`
+- **No automatic top-level constants** - users must run alias generator for `Badge` constant
+- **Engine is not mountable** - no routes, controllers, or views included
+- **Migrations must be copied** - use `rails rails_badgeable:install:migrations`
+- **Custom fields require migration** - add columns directly to tables if needed
+- **Join table accessible** - `model.rails_badgeable_assignments` for metadata access
+
+## Development
+
+- Rails Engine (non-mountable)
+- Ruby 3.0+ required
+- Rails 6.0+ compatible
+- MIT License
+- Author: aric.zheng <1290657123@qq.com>

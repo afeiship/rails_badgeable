@@ -13,9 +13,11 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/afeiship/rails_badgeable"
   spec.metadata["changelog_uri"] = "https://github.com/afeiship/rails_badgeable/blob/main/CHANGELOG.md"
+  spec.metadata["documentation_uri"] = "https://github.com/afeiship/rails_badgeable/blob/main/README.md"
+  spec.metadata["ai_assistant_uri"] = "https://github.com/afeiship/rails_badgeable/blob/main/llms.txt"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "llms.txt"]
   end
 
   spec.add_dependency "rails", ">= 6.0.0"

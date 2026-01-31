@@ -7,7 +7,7 @@ module Api
 
     def show
       post = Post.find(params[:id])
-      render json: post
+      render json: post.as_json(include: :badges)
     end
 
     def create
@@ -59,7 +59,7 @@ module Api
     private
 
     def post_params
-      params.require(:post).permit(:title, :content)
+      params.permit(:title, :content)
     end
   end
 end

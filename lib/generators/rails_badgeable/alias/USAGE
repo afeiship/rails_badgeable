@@ -1,0 +1,34 @@
+Description:
+    Creates a short alias initializer for RailsBadgeable models.
+
+    This allows you to use `Badge` instead of `RailsBadgeable::Badge`
+    and `BadgeAssignment` instead of `RailsBadgeable::BadgeAssignment`.
+
+    The created initializer uses `unless defined?` guards to prevent
+    redefinition warnings if these constants already exist in your application.
+
+Example:
+    rails generate rails_badgeable:alias
+
+    This will create:
+        config/initializers/badgeable.rb
+
+Usage After Installation:
+    # Before (full namespace required):
+    RailsBadgeable::Badge.find_or_create_by(name: "Important")
+    RailsBadgeable::BadgeAssignment.all
+
+    # After (short alias available):
+    Badge.find_or_create_by(name: "Important")
+    BadgeAssignment.all
+
+To Remove:
+    Simply delete the generated file:
+        rm config/initializers/badgeable.rb
+
+    Then restart your server to use the full namespace again.
+
+Notes:
+    - This is completely optional - you can always use the full namespace
+    - The generator will not overwrite existing files (use --force to override)
+    - Restart your server after running this generator
