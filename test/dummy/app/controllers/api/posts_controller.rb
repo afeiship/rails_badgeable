@@ -13,7 +13,12 @@ module Api
     def create
       post = Post.new(post_params)
       if post.save
-        render json: post, status: :created
+        # Handle badge_ids association
+        if params[:badge_ids].present?
+          badges = RailsBadgeable::Badge.where(id: params[:badge_ids])
+          post.badges << badges
+        end
+        render json: post.as_json(include: :badges), status: :created
       else
         render json: { errors: post.errors }, status: :unprocessable_entity
       end
@@ -22,7 +27,12 @@ module Api
     def update
       post = Post.find(params[:id])
       if post.update(post_params)
-        render json: post
+        # Handle badge_ids association - replace all badges
+        if params.key?(:badge_ids)
+          badges = RailsBadgeable::Badge.where(id: params[:badge_ids])
+          post.badges = badges
+        end
+        render json: post.as_json(include: :badges)
       else
         render json: { errors: post.errors }, status: :unprocessable_entity
       end
@@ -59,7 +69,7 @@ module Api
     private
 
     def post_params
-      params.permit(:title, :content)
+      params.permit(:title, :content, badge_ids: [])
     end
   end
 end

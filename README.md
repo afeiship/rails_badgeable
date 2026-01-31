@@ -34,6 +34,7 @@ post.badges << badge
 
 # 查询：这个 badge 分配给了哪些 posts？
 # 返回所有带有 "Important" badge 的 Post 记录
+# !!! 注意，这里并不支持 badge.posts 这种语法。
 badge.assigned_to(Post)  # => [post]
 
 # 查询：Post 模型使用过哪些 badges？

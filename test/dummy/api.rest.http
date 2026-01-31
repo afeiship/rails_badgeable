@@ -3,28 +3,37 @@
 @contentType = application/json
 
 ###############################################################################
-# Badges API
+# Badges CRUD (Independent Management)
 ###############################################################################
 
 ### List all badges
 GET {{baseUrl}}/badges
 
-### Create a badge
+### Create badge 1
 POST {{baseUrl}}/badges
 Content-Type: {{contentType}}
 
 {
   "name": "Important",
-  "description": "Important post marker"
+  "description": "Important content marker"
 }
 
-### Create another badge
+### Create badge 2
 POST {{baseUrl}}/badges
 Content-Type: {{contentType}}
 
 {
   "name": "Featured",
   "description": "Featured content"
+}
+
+### Create badge 3
+POST {{baseUrl}}/badges
+Content-Type: {{contentType}}
+
+{
+  "name": "Archived",
+  "description": "Archived content"
 }
 
 ### Get a specific badge
@@ -43,25 +52,26 @@ Content-Type: {{contentType}}
 GET {{baseUrl}}/badges/1/assigned_to?model_type=Post
 
 ### Delete a badge
-DELETE {{baseUrl}}/badges/2
+DELETE {{baseUrl}}/badges/3
 
 ###############################################################################
-# Posts API
+# Posts CRUD with badge_ids
 ###############################################################################
 
 ### List all posts
 GET {{baseUrl}}/posts
 
-### Create a post
+### Create a post with badges (using badge_ids array)
 POST {{baseUrl}}/posts
 Content-Type: {{contentType}}
 
 {
   "title": "Hello World",
-  "content": "My first post with badges"
+  "content": "My first post",
+  "badge_ids": [1, 2]
 }
 
-### Create another post
+### Create another post without badges
 POST {{baseUrl}}/posts
 Content-Type: {{contentType}}
 
@@ -70,48 +80,59 @@ Content-Type: {{contentType}}
   "content": "Learning Rails engines"
 }
 
-### Get a specific post
+### Get a specific post (includes badges)
 GET {{baseUrl}}/posts/1
 
-### Update a post
+### Update a post with new badge_ids (replaces all badges)
+PUT {{baseUrl}}/posts/2
+Content-Type: {{contentType}}
+
+{
+  "title": "Rails is awesome - Updated",
+  "content": "Updated content",
+  "badge_ids": [1]
+}
+
+### Update a post - remove all badges (empty array)
 PUT {{baseUrl}}/posts/1
 Content-Type: {{contentType}}
 
 {
-  "title": "Hello World Updated",
-  "content": "Updated content"
+  "title": "Hello World - Updated",
+  "content": "Updated content",
+  "badge_ids": []
 }
 
+### Update a post - don't change badges (omit badge_ids)
+PUT {{baseUrl}}/posts/2
+Content-Type: {{contentType}}
+
+{
+  "title": "Rails is awesome - Final",
+  "content": "Final content"
+}
+
+### Delete a post
+DELETE {{baseUrl}}/posts/2
+
 ###############################################################################
-# Post Badge Associations
+# Post Badge Individual Operations (Optional - for fine-grained control)
 ###############################################################################
 
 ### Get badges for a post
 GET {{baseUrl}}/posts/1/badges
 
-### Add a badge to a post
-POST {{baseUrl}}/posts/1/badges?badge_id=1
+### Add a single badge to a post
+POST {{baseUrl}}/posts/1/badges?badge_id=3
 
-### Add another badge to post
-POST {{baseUrl}}/posts/1/badges?badge_id=2
-
-### Get badges for post again (should show 2 badges)
-GET {{baseUrl}}/posts/1/badges
-
-### Remove a badge from a post
+### Remove a single badge from a post
 DELETE {{baseUrl}}/posts/1/badges/1
 
-### Remove another badge from a post
-DELETE {{baseUrl}}/posts/1/badges/2
-
-### Delete a post
-DELETE {{baseUrl}}/posts/1
-
 ###############################################################################
-# Workflow Example (run in sequence)
+# Workflow Example - Complete Scenario
 ###############################################################################
 
-### 1. Create badges first
+### Step 1: Create badges first
 POST {{baseUrl}}/badges
 Content-Type: {{contentType}}
 
@@ -120,23 +141,47 @@ Content-Type: {{contentType}}
   "description": "High priority item"
 }
 
-### 2. Create a post
+### Step 2: Create another badge
+POST {{baseUrl}}/badges
+Content-Type: {{contentType}}
+
+{
+  "name": "Urgent",
+  "description": "Urgent action required"
+}
+
+### Step 3: Create post with multiple badges
 POST {{baseUrl}}/posts
 Content-Type: {{contentType}}
 
 {
   "title": "Project Update",
-  "content": "Weekly progress report"
+  "content": "Weekly progress report",
+  "badge_ids": [4, 5]
 }
 
-### 3. Assign badge to post
-POST {{baseUrl}}/posts/1/badges?badge_id=1
+### Step 4: Check post's badges (should have 2 badges)
+GET {{baseUrl}}/posts/1
 
-### 4. Check post's badges
-GET {{baseUrl}}/posts/1/badges
+### Step 5: Update post - keep only Priority badge
+PUT {{baseUrl}}/posts/1
+Content-Type: {{contentType}}
 
-### 5. Check which posts have this badge
-GET {{baseUrl}}/badges/1/assigned_to?model_type=Post
+{
+  "title": "Project Update - Revised",
+  "content": "Updated report",
+  "badge_ids": [4]
+}
 
-### 6. Remove badge from post
-DELETE {{baseUrl}}/posts/1/badges/1
+### Step 6: Check which posts have Priority badge
+GET {{baseUrl}}/badges/4/assigned_to?model_type=Post
+
+### Step 7: Remove all badges from post
+PUT {{baseUrl}}/posts/1
+Content-Type: {{contentType}}
+
+{
+  "title": "Project Update - Final",
+  "content": "Final report",
+  "badge_ids": []
+}
