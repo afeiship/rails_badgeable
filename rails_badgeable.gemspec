@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors     = [ "aric.zheng" ]
   spec.email       = [ "1290657123@qq.com" ]
   spec.homepage    = "https://github.com/afeiship/rails_badgeable"
-  spec.summary     = "Add limited, reusable badges to multiple models via polymorphic associations."
-  spec.description = "A Rails engine that allows you to add limited, reusable badges to any model through polymorphic associations. Badge counts can be constrained per model instance."
+  spec.summary     = "A Rails engine for polymorphic, reusable badges on any model."
+  spec.description = spec.summary
   spec.license     = "MIT"
 
   spec.metadata["homepage_uri"] = spec.homepage

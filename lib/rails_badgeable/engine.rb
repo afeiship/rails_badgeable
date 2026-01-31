@@ -1,5 +1,5 @@
 module RailsBadgeable
   class Engine < ::Rails::Engine
-    isolate_namespace RailsBadgeable
+    # Non-mountable engine - no isolate_namespace needed
   end
 end
