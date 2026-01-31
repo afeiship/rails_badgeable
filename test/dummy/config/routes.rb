@@ -10,8 +10,10 @@ Rails.application.routes.draw do
       member do
         get :badges
         post :badges, to: 'posts#add_badge'
-        delete :badges/:badge_id, to: 'posts#remove_badge'
       end
     end
+
+    # Separate route for removing badge from post
+    delete '/posts/:post_id/badges/:badge_id', to: 'posts#remove_badge'
   end
 end

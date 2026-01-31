@@ -1,0 +1,142 @@
+### Rails Badgeable API Tests
+@baseUrl = http://localhost:3000/api
+@contentType = application/json
+
+###############################################################################
+# Badges API
+###############################################################################
+
+### List all badges
+GET {{baseUrl}}/badges
+
+### Create a badge
+POST {{baseUrl}}/badges
+Content-Type: {{contentType}}
+
+{
+  "name": "Important",
+  "description": "Important post marker"
+}
+
+### Create another badge
+POST {{baseUrl}}/badges
+Content-Type: {{contentType}}
+
+{
+  "name": "Featured",
+  "description": "Featured content"
+}
+
+### Get a specific badge
+GET {{baseUrl}}/badges/1
+
+### Update a badge
+PUT {{baseUrl}}/badges/1
+Content-Type: {{contentType}}
+
+{
+  "name": "Very Important",
+  "description": "Critical content"
+}
+
+### Get all posts assigned to this badge
+GET {{baseUrl}}/badges/1/assigned_to?model_type=Post
+
+### Delete a badge
+DELETE {{baseUrl}}/badges/2
+
+###############################################################################
+# Posts API
+###############################################################################
+
+### List all posts
+GET {{baseUrl}}/posts
+
+### Create a post
+POST {{baseUrl}}/posts
+Content-Type: {{contentType}}
+
+{
+  "title": "Hello World",
+  "content": "My first post with badges"
+}
+
+### Create another post
+POST {{baseUrl}}/posts
+Content-Type: {{contentType}}
+
+{
+  "title": "Rails is awesome",
+  "content": "Learning Rails engines"
+}
+
+### Get a specific post
+GET {{baseUrl}}/posts/1
+
+### Update a post
+PUT {{baseUrl}}/posts/1
+Content-Type: {{contentType}}
+
+{
+  "title": "Hello World Updated",
+  "content": "Updated content"
+}
+
+###############################################################################
+# Post Badge Associations
+###############################################################################
+
+### Get badges for a post
+GET {{baseUrl}}/posts/1/badges
+
+### Add a badge to a post
+POST {{baseUrl}}/posts/1/badges?badge_id=1
+
+### Add another badge to post
+POST {{baseUrl}}/posts/1/badges?badge_id=2
+
+### Get badges for post again (should show 2 badges)
+GET {{baseUrl}}/posts/1/badges
+
+### Remove a badge from a post
+DELETE {{baseUrl}}/posts/1/badges/1
+
+### Remove another badge from a post
+DELETE {{baseUrl}}/posts/1/badges/2
+
+### Delete a post
+DELETE {{baseUrl}}/posts/1
+
+###############################################################################
+# Workflow Example (run in sequence)
+###############################################################################
+
+### 1. Create badges first
+POST {{baseUrl}}/badges
+Content-Type: {{contentType}}
+
+{
+  "name": "Priority",
+  "description": "High priority item"
+}
+
+### 2. Create a post
+POST {{baseUrl}}/posts
+Content-Type: {{contentType}}
+
+{
+  "title": "Project Update",
+  "content": "Weekly progress report"
+}
+
+### 3. Assign badge to post
+POST {{baseUrl}}/posts/1/badges?badge_id=1
+
+### 4. Check post's badges
+GET {{baseUrl}}/posts/1/badges
+
+### 5. Check which posts have this badge
+GET {{baseUrl}}/badges/1/assigned_to?model_type=Post
+
+### 6. Remove badge from post
+DELETE {{baseUrl}}/posts/1/badges/1

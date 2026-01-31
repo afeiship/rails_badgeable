@@ -44,7 +44,7 @@ module Api
     private
 
     def badge_params
-      params.require(:badge).permit(:name, :description)
+      params.permit(:name, :description)
     end
   end
 end

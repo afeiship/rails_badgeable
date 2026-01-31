@@ -21,14 +21,15 @@ class CreateRailsBadgeableTables < ActiveRecord::Migration[6.0]
     #   t.references :granted_by, foreign_key: { to_table: :users }
     create_table :rails_badgeable_assignments do |t|
       t.references :badge, null: false, foreign_key: { to_table: :rails_badgeable_badges }
-      t.references :assignable, polymorphic: true, null: false
+      t.references :assignable, polymorphic: true, null: false, index: false
 
       t.timestamps
     end
 
+    # Custom composite index with short name
     add_index :rails_badgeable_assignments,
               [:badge_id, :assignable_type, :assignable_id],
               unique: true,
-              name: "index_rails_badgeable_assignments_on_badge_and_assignable"
+              name: "index_badge_assignments"
   end
 end
