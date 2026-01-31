@@ -1,6 +1,6 @@
 {
   "name": "rails_badgeable",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Add limited, reusable badges to multiple models via polymorphic associations.",
   "scripts": {
